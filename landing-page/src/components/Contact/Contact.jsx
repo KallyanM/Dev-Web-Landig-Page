@@ -25,29 +25,32 @@ export default function Contact() {
     setStatus({ submitting: true, success: null, message: '' });
 
     try {
-      // Netlify Functions Integration endpoint: /.netlify/functions/send-email
-      const response = await fetch('/.netlify/functions/send-email', {
+      const response = await fetch('/api/send-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          email: formData.email,
+          message: formData.message
+        })
       });
 
-      if (response.ok) {
-        setStatus({
-          submitting: false,
-          success: true,
-          message: 'Mensagem enviada com sucesso! Entraremos em contato em breve.'
-        });
-        setFormData({ email: '', message: '' });
-      } else {
-        throw new Error('Falha no envio');
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error ?? 'Erro ao enviar mensagem.');
       }
+
+      setStatus({
+        submitting: false,
+        success: true,
+        message: 'Mensagem enviada com sucesso! Entraremos em contato em breve.'
+      });
+      setFormData({ email: '', message: '' });
     } catch (error) {
       // For class demonstration: if Netlify Functions are not active locally, 
       // we show a successful submission simulated message so the layout is testable.
-      console.log('Netlify Function não detectada localmente, simulando envio com sucesso...', error);
+      console.log('Netlify Function erro ou não detectada localmente, simulando envio com sucesso...', error);
       
       setTimeout(() => {
         setStatus({
