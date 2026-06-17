@@ -1,9 +1,11 @@
-import { useState } from 'react';
 import './Header.css';
 
-export default function Header() {
-  const [menuOpen, setMenuOpen] = useState(false);
+interface HeaderProps {
+  menuOpen: boolean;
+  setMenuOpen: (open: boolean) => void;
+}
 
+export default function Header({ menuOpen, setMenuOpen }: HeaderProps) {
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };

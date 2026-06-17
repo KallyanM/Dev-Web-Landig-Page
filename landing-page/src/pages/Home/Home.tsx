@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import Header from '../../components/Header/Header';
 import Hero from '../../components/Hero/Hero';
 import About from '../../components/About/About';
@@ -9,9 +10,19 @@ import Footer from '../../components/Footer/Footer';
 import './Home.css';
 
 export default function Home() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [menuOpen]);
+
   return (
     <div className="home-page">
-      <Header />
+      <Header menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <main>
         <Hero />
         <About />
