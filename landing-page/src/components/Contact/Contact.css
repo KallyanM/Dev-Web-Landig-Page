@@ -109,6 +109,12 @@
   box-shadow: 0 0 0 3px rgba(11, 37, 69, 0.1);
 }
 
+.recaptcha-group {
+  margin: 15px 0;
+  display: flex;
+  justify-content: flex-start;
+}
+
 .btn-submit {
   padding: 14px 28px;
   background-color: var(--primary);

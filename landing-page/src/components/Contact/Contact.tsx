@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
 import './Contact.css';
 
 interface ContactFormData {
@@ -22,6 +23,9 @@ export default function Contact() {
     success: null,
     message: ''
   });
+  const [isChallengeCompleted, setChallengeCompleted] = useState<boolean>(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -31,8 +35,33 @@ export default function Contact() {
     }));
   };
 
+  function isValidForm() {
+    const isValidFields = formData.email.trim() !== '' && formData.message.trim() !== '';
+    return isValidFields && isChallengeCompleted;
+  }
+
+  function handleCompleteChallenge(token: string | null) {
+    if (!token) {
+      setChallengeCompleted(false);
+      setCaptchaToken(null);
+      return;
+    }
+    setChallengeCompleted(true);
+    setCaptchaToken(token);
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!isValidForm()) {
+      setStatus({
+        submitting: false,
+        success: false,
+        message: 'Por favor, complete a verificação "Não sou um robô".'
+      });
+      return;
+    }
+
     setStatus({ submitting: true, success: null, message: '' });
 
     try {
@@ -43,7 +72,8 @@ export default function Contact() {
         },
         body: JSON.stringify({
           email: formData.email,
-          message: formData.message
+          message: formData.message,
+          captchaToken: captchaToken
         })
       });
 
@@ -58,11 +88,12 @@ export default function Contact() {
         message: 'Mensagem enviada com sucesso! Entraremos em contato em breve.'
       });
       setFormData({ email: '', message: '' });
+      setChallengeCompleted(false);
+      setCaptchaToken(null);
+      recaptchaRef.current?.reset();
     } catch (error: any) {
-      // For class demonstration: if Netlify Functions are not active locally, 
-      // we show a successful submission simulated message so the layout is testable.
       console.log('Netlify Function erro ou não detectada localmente, simulando envio com sucesso...', error);
-      
+
       setTimeout(() => {
         setStatus({
           submitting: false,
@@ -70,6 +101,9 @@ export default function Contact() {
           message: 'Simulado com Sucesso! (Estrutura do Netlify pronta) Obrigado pelo contato, responderemos em breve.'
         });
         setFormData({ email: '', message: '' });
+        setChallengeCompleted(false);
+        setCaptchaToken(null);
+        recaptchaRef.current?.reset();
       }, 1200);
     }
   };
@@ -137,6 +171,14 @@ export default function Contact() {
                 placeholder="Descreva brevemente o serviço que você precisa..."
                 required
               ></textarea>
+            </div>
+
+            <div className="form-group recaptcha-group">
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                onChange={handleCompleteChallenge}
+              />
             </div>
 
             <button

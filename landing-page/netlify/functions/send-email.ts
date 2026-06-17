@@ -4,6 +4,7 @@ import nodemailer from "nodemailer";
 interface ContactPayload {
   email: string;
   message: string;
+  captchaToken?: string;
 }
 
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN ?? "";
@@ -45,7 +46,7 @@ const handler: Handler = async (event: HandlerEvent) => {
     };
   }
 
-  const { email, message } = payload;
+  const { email, message, captchaToken } = payload;
 
   if (!email?.trim() || !message?.trim()) {
     return {
@@ -62,6 +63,35 @@ const handler: Handler = async (event: HandlerEvent) => {
       headers: corsHeaders(origin),
       body: JSON.stringify({ error: "E-mail inválido." }),
     };
+  }
+
+  if (!captchaToken) {
+    return {
+      statusCode: 422,
+      headers: corsHeaders(origin),
+      body: JSON.stringify({ error: "Por favor, complete a validação do captcha." }),
+    };
+  }
+
+  try {
+    const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+    const googleVerifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaSecret}&response=${captchaToken}`;
+
+    const response = await fetch(googleVerifyUrl, {
+      method: "POST",
+    });
+
+    const verificationResult = await response.json() as { success: boolean };
+
+    if (!verificationResult.success) {
+      return {
+        statusCode: 400,
+        headers: corsHeaders(origin),
+        body: JSON.stringify({ error: "Falha na validação do captcha (Google)." }),
+      };
+    }
+  } catch (error) {
+    console.error("Erro ao verificar captcha no Google:", error);
   }
 
   const transporter = nodemailer.createTransport({
