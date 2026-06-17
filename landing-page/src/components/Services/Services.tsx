@@ -1,6 +1,13 @@
 import './Services.css';
 
-const servicesData = [
+interface ServiceItem {
+  id: number;
+  title: string;
+  description: string;
+  icon: string;
+}
+
+const servicesData: ServiceItem[] = [
   {
     id: 1,
     title: 'Instalações Elétricas',

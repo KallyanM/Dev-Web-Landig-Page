@@ -1,6 +1,15 @@
 import './Pricing.css';
 
-const pricingData = [
+interface PricingPlan {
+  id: number;
+  name: string;
+  description: string;
+  popular: boolean;
+  benefits: string[];
+  ctaText: string;
+}
+
+const pricingData: PricingPlan[] = [
   {
     id: 1,
     name: 'Residencial',

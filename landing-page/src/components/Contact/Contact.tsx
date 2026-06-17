@@ -1,18 +1,29 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import './Contact.css';
 
+interface ContactFormData {
+  email: string;
+  message: string;
+}
+
+interface SubmitStatus {
+  submitting: boolean;
+  success: boolean | null;
+  message: string;
+}
+
 export default function Contact() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ContactFormData>({
     email: '',
     message: ''
   });
-  const [status, setStatus] = useState({
+  const [status, setStatus] = useState<SubmitStatus>({
     submitting: false,
     success: null,
     message: ''
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -20,7 +31,7 @@ export default function Contact() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus({ submitting: true, success: null, message: '' });
 
@@ -47,7 +58,7 @@ export default function Contact() {
         message: 'Mensagem enviada com sucesso! Entraremos em contato em breve.'
       });
       setFormData({ email: '', message: '' });
-    } catch (error) {
+    } catch (error: any) {
       // For class demonstration: if Netlify Functions are not active locally, 
       // we show a successful submission simulated message so the layout is testable.
       console.log('Netlify Function erro ou não detectada localmente, simulando envio com sucesso...', error);
@@ -122,7 +133,7 @@ export default function Contact() {
                 name="message"
                 value={formData.message}
                 onChange={handleChange}
-                rows="5"
+                rows={5}
                 placeholder="Descreva brevemente o serviço que você precisa..."
                 required
               ></textarea>
